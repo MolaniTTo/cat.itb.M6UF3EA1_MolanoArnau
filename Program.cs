@@ -10,6 +10,9 @@ using UF3_test.connections;
 using UF3_test.model;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using UF3_test.cruds;
+using System.Reflection.Emit;
+using System.Xml.Linq;
 
 namespace UF3_test
 {
@@ -17,6 +20,15 @@ namespace UF3_test
     {
         public static void Main(string[] args)
         {
+            PeopleCRUD peopleCRUD = new PeopleCRUD();
+            ProductCRUD productCRUD = new ProductCRUD();
+            BookCRUD bookCRUD = new BookCRUD();
+            RestaurantCRUD restaurantCRUD = new RestaurantCRUD();
+            StudentCRUD studentCRUD = new StudentCRUD();
+
+
+
+
             Console.WriteLine("         ----------EA1----------         ");
             Console.WriteLine("1. Insert Students");
             Console.WriteLine("2. Select students where group = (your group)");
@@ -24,8 +36,22 @@ namespace UF3_test
             Console.WriteLine("4. Select students with less than 50 in exam");
             Console.WriteLine("5. Select interests where student_id = 111222333");
             Console.WriteLine("6. Load all collections");
-            Console.WriteLine("7. Exit");
-
+            Console.WriteLine();
+            Console.WriteLine("         ----------EA2----------        ");
+            Console.WriteLine("7. Select friends of Arianna Crammer");
+            Console.WriteLine("8. Select all of restaurants where borough = Manhattan and cuisine = Seafood");
+            Console.WriteLine("9. Select name restaurants with ZipCode = 11234");
+            Console.WriteLine("10. Select title and authors orderBy PageCount");
+            Console.WriteLine("11. Select title isbn and pageCount of books with more than 250 pages");
+            Console.WriteLine("12. Update stock = 150 wherre price is between 600 abd 1000");
+            Console.WriteLine("13. Add discount = 0.2 where stock > 100 ");
+            Console.WriteLine("14. Update zipcode to 30033 of street Charles Street");
+            Console.WriteLine("15. Add stars where cuisine = Caribbean");
+            Console.WriteLine("16. Delete products where price is between 400 and 600");
+            Console.WriteLine("17. Delete product with name = 'Mac mini'");
+            Console.WriteLine("18. Delete restaurants where cuisine = 'Delicatessen'");
+            Console.WriteLine("19. Delete first category of product with name = 'MakBook Air'");
+            Console.WriteLine("0. Exit");
             Console.WriteLine("Introdueix el número de l'exercici que vols executar: ");
             int option = Convert.ToInt32(Console.ReadLine());
 
@@ -50,6 +76,48 @@ namespace UF3_test
                     LoadAllCollections();
                     break;
                 case 7:
+                    peopleCRUD.SelectFriendsOfPersonName("Arianna Cramer");
+                    break;
+                case 8:
+                    restaurantCRUD.SelectRestaurantsOnBoroughAndCuisine("Manhattan", "Seafood");
+                    break;
+                case 9:
+                    restaurantCRUD.SelectRestaurantsByZipCode("11234");
+                    break; 
+                case 10:
+                    bookCRUD.SelectTitleAndAuthorsFromBooksOrderByPageCount();
+                    break;
+                case 11:
+                    bookCRUD.SelectTitleIsbnPageCountFromBooksWherePageCountGreatherThan250();
+                    break;
+                case 12:
+                    productCRUD.UpdateProductStockWherePriceIsBetween600And1000();
+                    break;
+                case 13:
+                    productCRUD.InsertNewAttributeDiscountToProductsWhereStockIsGreatherThan100();
+                break;
+                case 14:
+                    restaurantCRUD.UpdateZipcodeFromStreet("Charles Street", "30033");
+                    break;
+                case 15:
+                    restaurantCRUD.AddNewAttributeStarsWhereCuisineIsCaribbean("Caribbean");
+                    break;
+                case 16:
+                    productCRUD.DeleteProductsWherePriceBetween400And600();
+                    break;
+                case 17:
+                    productCRUD.DeleteProductWithName("Mac mini");
+                    break;
+                case 18:
+                    restaurantCRUD.DeleteRestaurantsWhereCuisineIs("Caribbean");
+                    break;
+                case 19:
+                    productCRUD.DeleteFirstCategoryFromProductMacBookAir("MakBook Air");
+                    break;
+                case 20:
+                    LoadAllCollections();
+                    break;
+                case 0:
                     Environment.Exit(0);
                     break;
                 default:
@@ -57,7 +125,6 @@ namespace UF3_test
                     break;
             }
 
-            
         }
 
 
@@ -112,9 +179,7 @@ namespace UF3_test
             {
                 Console.WriteLine(student.ToString());
             }
-
         }
-
 
         private static void SelectStudentsWith100InExam()
         {
@@ -171,243 +236,21 @@ namespace UF3_test
 
 
         private static void LoadAllCollections()
-        {
+        {  
+            PeopleCRUD peopleCRUD = new PeopleCRUD();
+            ProductCRUD productCRUD = new ProductCRUD();
+            BookCRUD bookCRUD = new BookCRUD();
+            RestaurantCRUD restaurantCRUD = new RestaurantCRUD();
+            StudentCRUD studentCRUD = new StudentCRUD();
+
+            peopleCRUD.LoadPeopleCollection();
+            productCRUD.LoadProductsCollection();
+            bookCRUD.LoadBooksCollection();
+            restaurantCRUD.LoadRestaurantsCollection();
+            studentCRUD.LoadStudentsCollection();
           
-            LoadStudentsCollection();
         }
 
-        //LoadPeopleCollection
-        private static void LoadPeopleCollection()
-        {
-            FileInfo file = new FileInfo("../../../files/people.json");
-            StreamReader sr = file.OpenText();
-            string fileString = sr.ReadToEnd();
-            sr.Close();
-            List<Person> people = JsonConvert.DeserializeObject<List<Person>>(fileString);
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("PEOPLE");
-
-            if (people != null)
-            {
-                foreach (var person in people)
-                {
-                    Console.WriteLine(person.name);
-                    string json = JsonConvert.SerializeObject(person);
-                    var document = new BsonDocument();
-                    document.Add(BsonDocument.Parse(json));
-                    collection.InsertOne(document);
-                }
-                Console.WriteLine("People collection loaded");
-            }    
-        }
-
-        //LoadBooksCollection
-        private static void LoadBooksCollection()
-        {
-            FileInfo file = new FileInfo("../../../files/books.json");
-            StreamReader sr = file.OpenText();
-            string fileString = sr.ReadToEnd();
-            sr.Close();
-            List<Book> books = JsonConvert.DeserializeObject<List<Book>>(fileString);
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
-
-            if (books != null)
-            {
-                foreach (var book in books)
-                {
-                    Console.WriteLine(book.title);
-                    string json = JsonConvert.SerializeObject(book);
-                    var document = new BsonDocument();
-                    document.Add(BsonDocument.Parse(json));
-                    collection.InsertOne(document);
-                }
-                Console.WriteLine("Books collection loaded");
-            }  
-        }
-
-        //LoadRestaurantsCollection
-        private static void LoadRestaurantsCollection()
-        {
-            FileInfo file = new FileInfo("../../../files/restaurants.json");
-            StreamReader sr = file.OpenText();
-
-            // Creamos una lista para almacenar los restaurantes
-            List<Restaurant> restaurants = new List<Restaurant>();
-
-            // Leemos el archivo línea por línea
-            string line;
-            while ((line = sr.ReadLine()) != null)
-            {
-                // Deserializamos cada línea como un objeto de restaurante
-                Restaurant restaurant = JsonConvert.DeserializeObject<Restaurant>(line);
-                restaurants.Add(restaurant);
-            }
-
-            sr.Close();
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("RESTAURANTS");
-
-            if (restaurants.Count > 0)
-            {
-                foreach (var restaurant in restaurants)
-                {
-                    Console.WriteLine(restaurant.name);
-                    string json = JsonConvert.SerializeObject(restaurant);
-                    var document = new BsonDocument();
-                    document.Add(BsonDocument.Parse(json));
-                    collection.InsertOne(document);
-                }
-                Console.WriteLine("Restaurants collection loaded");
-            }
-        }
-
-        //LoadProductsCollection
-        private static void LoadProductsCollection()
-        {
-            FileInfo file = new FileInfo("../../../files/products.json");
-            StreamReader sr = file.OpenText();
-
-            List<Product> products = new List<Product>();
-
-            string line;
-            while ((line = sr.ReadLine()) != null)
-            {
-                Product product = JsonConvert.DeserializeObject<Product>(line);
-                products.Add(product);
-            }
-
-            sr.Close();
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("PRODUCTS");
-
-            if (products.Count > 0)
-            {
-                foreach (var product in products)
-                {
-                    Console.WriteLine(product.name);
-                    string json = JsonConvert.SerializeObject(product);
-                    var document = BsonDocument.Parse(json);
-                    collection.InsertOne(document);
-                }
-                Console.WriteLine("Products collection loaded");
-            }
-        }
-
-
-
-        //LoadStudentsCollection
-        private static void LoadStudentsCollection()
-        {
-            FileInfo file = new FileInfo("../../../files/students.json");
-            StreamReader sr = file.OpenText();
-
-            List<Student> students = new List<Student>();
-
-            string line;
-            while ((line = sr.ReadLine()) != null)
-            {
-                Student student = JsonConvert.DeserializeObject<Student>(line);
-                students.Add(student);
-            }
-
-            sr.Close();
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("STUDENTS");
-
-            if (students.Count > 0)
-            {
-                foreach (var student in students)
-                {
-                    Console.WriteLine(student.firstname);
-                    string json = JsonConvert.SerializeObject(student);
-                    var document = BsonDocument.Parse(json);
-                    collection.InsertOne(document);
-                }
-                Console.WriteLine("Students collection loaded");
-            }
-        }
-
-        /*
-        
-        private static void GetAllDBs()
-        {
-            
-            var dbClient = MongoLocalConnection.GetMongoClient();
-            
-            var dbList = dbClient.ListDatabases().ToList();
-            Console.WriteLine("The list of databases on this server is: ");
-            foreach (var db in dbList)
-            {
-                Console.WriteLine(db);
-            }
-
-        }
-
-        private static void GetCollections()
-        {
-            
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-
-            var colList = database.ListCollections().ToList();
-            Console.WriteLine("The list of collection on this database is: ");
-            foreach (var col in colList)
-            {
-                Console.WriteLine(col);
-            }
-        }
-
-        private static void SelectAllStudents()
-        {
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("GRADES");
-
-            var studentDocuments = collection.Find(new BsonDocument()).ToList();
-
-            foreach (var student in studentDocuments)
-            {
-                Console.WriteLine(student.ToString());
-            }
-
-        }
-        
-        private static void SelectOneStudent()
-        {
-            
-
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("GRADES");
-
-            var filter = Builders<BsonDocument>.Filter.Eq("student_id", 111222333);
-            var studentDocument = collection.Find(filter).FirstOrDefault();
-            Console.WriteLine(studentDocument.ToString());
-
-        }
-
-        private static void SelectStudentFields()
-        {
-            
-            var database = MongoLocalConnection.GetDatabase("sample_training");
-            var collection = database.GetCollection<BsonDocument>("grades");
-
-            var filter = Builders<BsonDocument>.Filter.Eq("student_id", 9999923);
-            var studentDocument = collection.Find(filter).FirstOrDefault();
-            var id = studentDocument.GetElement("student_id");
-            var scores = studentDocument.GetElement("scores");
-
-            Console.WriteLine(id.ToString());
-            Console.WriteLine(scores.ToString());
-
-        }
-
-        */
-
-
+      
     }
 }
