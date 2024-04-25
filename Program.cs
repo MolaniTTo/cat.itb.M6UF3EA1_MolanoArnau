@@ -13,6 +13,8 @@ using System.Diagnostics;
 using UF3_test.cruds;
 using System.Reflection.Emit;
 using System.Xml.Linq;
+using System.Linq;
+
 
 namespace UF3_test
 {
@@ -20,6 +22,8 @@ namespace UF3_test
     {
         public static void Main(string[] args)
         {
+
+           
             PeopleCRUD peopleCRUD = new PeopleCRUD();
             ProductCRUD productCRUD = new ProductCRUD();
             BookCRUD bookCRUD = new BookCRUD();
@@ -51,8 +55,20 @@ namespace UF3_test
             Console.WriteLine("17. Delete product with name = 'Mac mini'");
             Console.WriteLine("18. Delete restaurants where cuisine = 'Delicatessen'");
             Console.WriteLine("19. Delete first category of product with name = 'MakBook Air'");
+            Console.WriteLine("20. Load all collections");
+            Console.WriteLine("21. Drop collection");
+            Console.WriteLine("         ----------EA3----------         ");
+            Console.WriteLine("22. Select ISBN of all books");
+            Console.WriteLine("23. Select title categories from books and orderByPageCount");
+            Console.WriteLine("24. Select title and authors of books of Danno Ferrin");
+            Console.WriteLine("25. Select all books with between 300 and 350 pages and category = java");
+            Console.WriteLine("26. Select title and authors where authors contains 'Charlie Collins' i 'Robi Sen'");
+            Console.WriteLine("27. Select books that have category Java and discard books with author Vikram Goyal");
+            Console.WriteLine("28. Select name and price of the product with the lowest price.");
+            Console.WriteLine("29. Sum of all stocks of the products collection");
             Console.WriteLine("0. Exit");
             Console.WriteLine("Introdueix el número de l'exercici que vols executar: ");
+
             int option = Convert.ToInt32(Console.ReadLine());
 
             switch (option)
@@ -117,6 +133,40 @@ namespace UF3_test
                 case 20:
                     LoadAllCollections();
                     break;
+                case 21:
+                    GeneralCRUD generalCRUD = new GeneralCRUD();
+                    Console.WriteLine("Introdueix el nom de la base de dades: ");
+                    string databaseName = Console.ReadLine();
+                    Console.WriteLine("Introdueix el nom de la col·lecció: ");
+                    string collectionName = Console.ReadLine();
+                    generalCRUD.DropCollection(databaseName, collectionName);
+                    break;
+                case 22:
+                    bookCRUD.SelectIsbnFromBooks();
+                    break;
+                case 23:
+                    bookCRUD.SelectTitleCategoriesFromBooksOrderByPageCount();
+                    break;
+                case 24:
+                    bookCRUD.SelectTitleAuthorsFromBooksByAuthor("Danno Ferrin");
+                    break;
+                case 25:
+                    bookCRUD.SelectTitleAuthorsPageCountFromBooksByPageCountAndCategory(300, 350, "Java");
+                    break;
+                case 26:
+                    string[] authors = { "Charlie Collins", "Robi Sen" };
+                    bookCRUD.SelectTitleAndAuthorsWhereAuthorsContains(authors);
+                    break;
+                case 27:
+                    bookCRUD.SelectTitleAuthorsFromBooksByCategoryAndAuthor("Java", "Vikram Goyal");
+                    break;
+                case 28:
+                    productCRUD.SelectNameAndPriceFromProductWithLowestPrice();
+                    break;
+                case 29:
+                    productCRUD.SelectSumOfStocks();
+                    break;
+
                 case 0:
                     Environment.Exit(0);
                     break;
@@ -126,8 +176,6 @@ namespace UF3_test
             }
 
         }
-
-
         private static void InsertStudents()
         {
            

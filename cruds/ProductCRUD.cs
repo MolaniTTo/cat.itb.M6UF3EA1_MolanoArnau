@@ -135,9 +135,41 @@ namespace UF3_test.cruds
             Console.WriteLine("Products updated: " + result.ModifiedCount);
         }
 
-
-
        
+
+        public void SelectNameAndPriceFromProductWithLowestPrice()
+        {
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<BsonDocument>("PRODUCTS");
+
+            var sort = Builders<BsonDocument>.Sort.Ascending("price");
+
+            var product = collection.Find(new BsonDocument()).Sort(sort).Limit(1).ToList();
+
+            foreach (var p in product)
+            {
+                Console.WriteLine(p.ToString());
+            }
+        }
+
+      
+
+        public void SelectSumOfStocks()
+        {
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<BsonDocument>("PRODUCTS");
+
+            var sum = collection.Aggregate().Group(new BsonDocument { { "_id", "null" }, { "total", new BsonDocument("$sum", "$stock") } }).ToList();
+
+            foreach (var s in sum)
+            {
+                Console.WriteLine(s.ToString());
+            }
+        }
+
+
+
+
 
 
 
