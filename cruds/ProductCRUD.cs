@@ -48,6 +48,39 @@ namespace UF3_test.cruds
         }
 
 
+        public void LoadProducts2Collection()
+        {
+            FileInfo file = new FileInfo("../../../files/products2.json");
+            StreamReader sr = file.OpenText();
+
+            List<Product_> products = new List<Product_>();
+
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                Product_ product = JsonConvert.DeserializeObject<Product_>(line);
+                products.Add(product);
+            }
+
+            sr.Close();
+
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<BsonDocument>("PRODUCTS2");
+
+            if (products.Count > 0)
+            {
+                foreach (var product in products)
+                {
+                    Console.WriteLine(product.name);
+                    string json = JsonConvert.SerializeObject(product);
+                    var document = BsonDocument.Parse(json);
+                    collection.InsertOne(document);
+                }
+                Console.WriteLine("Products2 collection loaded");
+            }
+        }
+
+
         public void UpdateProductStockWherePriceIsBetween600And1000()
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
@@ -140,16 +173,13 @@ namespace UF3_test.cruds
         public void SelectNameAndPriceFromProductWithLowestPrice()
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("PRODUCTS");
+            var collection = database.GetCollection<Product_>("PRODUCTS2");
 
-            var sort = Builders<BsonDocument>.Sort.Ascending("price");
+            var product = (from p in collection.AsQueryable<Product_>()
+                           orderby p.price
+                           select new { p.name, p.price }).First();
 
-            var product = collection.Find(new BsonDocument()).Sort(sort).Limit(1).ToList();
-
-            foreach (var p in product)
-            {
-                Console.WriteLine(p.ToString());
-            }
+            Console.WriteLine(product.name + " " + product.price);
         }
 
       
@@ -157,14 +187,12 @@ namespace UF3_test.cruds
         public void SelectSumOfStocks()
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("PRODUCTS");
+            var collection = database.GetCollection<Product_>("PRODUCTS2");
 
-            var sum = collection.Aggregate().Group(new BsonDocument { { "_id", "null" }, { "total", new BsonDocument("$sum", "$stock") } }).ToList();
+            var sum = (from p in collection.AsQueryable<Product_>()
+                                             select p.stock).Sum();
+            Console.WriteLine(sum.ToString());
 
-            foreach (var s in sum)
-            {
-                Console.WriteLine(s.ToString());
-            }
         }
 
 

@@ -11,7 +11,7 @@ namespace UF3_test.cruds
 {
     public class GeneralCRUD
     {
-        public void DropCollection(string databaseName, string collectionName)
+        public void DropCollections(string databaseName, string collectionName)
         {
             try
             {

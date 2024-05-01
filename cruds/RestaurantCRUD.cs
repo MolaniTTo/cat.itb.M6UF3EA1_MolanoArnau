@@ -51,7 +51,7 @@ namespace UF3_test.cruds
             }
         }
 
-
+        
         public void SelectRestaurantsOnBoroughAndCuisine(string borough , string cuisine)
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
@@ -127,5 +127,87 @@ namespace UF3_test.cruds
 
             Console.WriteLine("Restaurants deleted: " + result.DeletedCount);
         }
+
+
+
+        //AGREGACIONS
+
+
+        public void CountRestaurantsByCuisineSortDescending()
+        {
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<Restaurant>("RESTAURANTS");
+            var aggregate = collection.Aggregate()
+                .Group(new BsonDocument { { "_id", "$cuisine" }, { "count", new BsonDocument("$sum", 1) } })
+                .Sort(new BsonDocument("count", -1));
+
+            foreach (var restaurant in aggregate.ToList())
+            {
+                Console.WriteLine(restaurant);
+            }
+
+        }
+
+        public void CountGradesByRestaurant()
+        {
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<Restaurant>("RESTAURANTS");
+            
+            var aggregate = collection.Aggregate()
+                .Project(new BsonDocument { { "name", 1 }, { "grades", 1 } })
+                .Unwind("grades")
+                .Group(new BsonDocument { { "_id", "$name" }, { "count", new BsonDocument("$sum", 1) } });
+
+            foreach (var restaurant in aggregate.ToList())
+            {
+                Console.WriteLine(restaurant);
+            }
+        }
+
+        public void ShowMaxScoreByRestaurant()
+        {
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<Restaurant>("RESTAURANTS");
+
+            var aggregate = collection.Aggregate()
+                .Project(new BsonDocument { { "name", 1 }, { "grades", 1 } })
+                .Unwind("grades").Group(new BsonDocument { { "_id", "$name" }, { "maxScore", new BsonDocument("$max", "$grades.score") } });
+
+            foreach (var restaurant in aggregate.ToList())
+            {
+                Console.WriteLine(restaurant);
+            }
+        }
+
+        
+        public void ShowCuisineTypesByBorough()
+        {
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<Restaurant>("RESTAURANTS");
+
+            var aggregate = collection.Aggregate()
+                .Project(new BsonDocument { { "borough", 1 }, { "cuisine", 1 } })
+                .Group(new BsonDocument { { "_id", "$borough" }, { "cuisineTypes", new BsonDocument("$addToSet", "$cuisine") } });
+
+            foreach (var restaurant in aggregate.ToList())
+            {
+                Console.WriteLine(restaurant);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

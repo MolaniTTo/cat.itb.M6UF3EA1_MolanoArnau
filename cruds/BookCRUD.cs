@@ -40,6 +40,31 @@ namespace UF3_test.cruds
             }
         }
 
+        public void LoadBooks2Collection()
+        {
+            FileInfo file = new FileInfo("../../../files/books2.json");
+            StreamReader sr = file.OpenText();
+            string fileString = sr.ReadToEnd();
+            sr.Close();
+            List<Book_> books = JsonConvert.DeserializeObject<List<Book_>>(fileString);
+
+            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
+            var collection = database.GetCollection<BsonDocument>("BOOKS2");
+
+            if (books != null)
+            {
+                foreach (var book in books)
+                {
+                    Console.WriteLine(book.title);
+                    string json = JsonConvert.SerializeObject(book);
+                    var document = new BsonDocument();
+                    document.Add(BsonDocument.Parse(json));
+                    collection.InsertOne(document);
+                }
+                Console.WriteLine("Books2 collection loaded");
+            }
+        }
+
 
         public void SelectTitleAndAuthorsFromBooksOrderByPageCount()
         {
@@ -78,170 +103,129 @@ namespace UF3_test.cruds
             }
         }
 
-
         public void SelectIsbnFromBooks()
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<Book>("BOOKS");
+            var booksCollection2 = database.GetCollection<Book_>("BOOKS2");
 
-            var isbn = collection.AsQueryable().Select(x => x.isbn).ToList();
+            var isbn = from book in booksCollection2.AsQueryable<Book_>()
+            select book.isbn;
 
-            foreach (var i in isbn)
+            foreach (var book in isbn)
             {
-                Console.WriteLine(i);
+                Console.WriteLine(book);
             }
         }
+
 
         public void SelectTitleCategoriesFromBooksOrderByPageCount()
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
+            var booksCollection2 = database.GetCollection<Book_>("BOOKS2");
 
-            var filter = Builders<BsonDocument>.Filter.Empty;
-
-            var sort = Builders<BsonDocument>.Sort.Descending("pageCount");
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("categories");
-
-            var books = collection.Find(filter).Project(projection).Sort(sort).ToList();
+            var books = from book in booksCollection2.AsQueryable<Book_>()
+                        orderby book.pageCount
+                        select new { book.title, book.categories };
 
             foreach (var book in books)
             {
-                Console.WriteLine(book.ToString());
-            }
+                Console.Write(book.title + " ");
+                foreach (var category in book.categories)
+                {
+                    Console.Write(category + " ");
+                }
+                Console.WriteLine();
+            }  
         }
+           
 
        
         public void SelectTitleAuthorsFromBooksByAuthor(string author)
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
+            var collection = database.GetCollection<Book_>("BOOKS2");
 
-            var filter = Builders<BsonDocument>.Filter.Eq("authors", author);
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors");
-
-            var books = collection.Find(filter).Project(projection).ToList();
+            var books = from book in collection.AsQueryable<Book_>()
+                        where book.authors.Contains(author)
+                        select new { book.title, book.authors };
 
             foreach (var book in books)
             {
-                Console.WriteLine(book.ToString());
+                Console.WriteLine(book.title);
+                foreach (var a in book.authors)
+                {
+                    Console.WriteLine(a);
+                }
+                Console.WriteLine();
             }
         }
+
 
         public void SelectTitleAuthorsPageCountFromBooksByPageCountAndCategory(int minPageCount, int maxPageCount, string category)
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
+            var collection = database.GetCollection<Book_>("BOOKS2");
 
-            var filter = Builders<BsonDocument>.Filter.And(
-                               Builders<BsonDocument>.Filter.Gte("pageCount", minPageCount),
-                                              Builders<BsonDocument>.Filter.Lte("pageCount", maxPageCount),
-                                                             Builders<BsonDocument>.Filter.Eq("categories", category)
-                                                                        );
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors").Include("pageCount");
-
-            var books = collection.Find(filter).Project(projection).ToList();
+            var books = from book in collection.AsQueryable<Book_>()
+                        where book.pageCount >= minPageCount && book.pageCount <= maxPageCount && book.categories.Contains(category)
+                        select new { book.title, book.authors, book.pageCount };
 
             foreach (var book in books)
             {
-                Console.WriteLine(book.ToString());
+                Console.WriteLine(book.title);
+                foreach (var a in book.authors)
+                {
+                    Console.WriteLine(a);
+                }
+                Console.WriteLine(book.pageCount);
+                Console.WriteLine();
             }
+           
         }
 
-        /*e) Mostra el title, authors dels llibres on han participat almenys els autors: "Charlie Collins" i "Robi Sen".
-Al mètode li passarem un Array de Strings (String[]) amb els noms dels autors.*/
 
         public void SelectTitleAuthorsFromBooksByAuthors(string[] authors)
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
+            var collection = database.GetCollection<Book_>("BOOKS2");
 
-            var filter = Builders<BsonDocument>.Filter.All("authors", authors);
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors");
-
-            var books = collection.Find(filter).Project(projection).ToList();
+            var books = from book in collection.AsQueryable<Book_>()
+                        where authors.All(a => book.authors.Contains(a))
+                        select new { book.title, book.authors };
 
             foreach (var book in books)
             {
-                Console.WriteLine(book.ToString());
+                Console.WriteLine(book.title);
+                foreach (var a in book.authors)
+                {
+                    Console.WriteLine(a);
+                }
+                Console.WriteLine();
             }
+
         }
 
-        public void SelectTitleAuthorsFromBooksByAuthors2(string[] authors)
-        {
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
-
-            var filter = Builders<BsonDocument>.Filter.All("authors", authors);
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors");
-
-            var books = collection.Find(filter).Project(projection).ToList();
-
-            foreach (var book in books)
-            {
-                Console.WriteLine(book.ToString());
-            }
-        }
-
-        public void SelectTitleAuthorsFromBooksByAuthors3(string[] authors)
-        {
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
-
-            var filter = Builders<BsonDocument>.Filter.All("authors", authors);
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors");
-
-            var books = collection.Find(filter).Project(projection).ToList();
-
-            foreach (var book in books)
-            {
-                Console.WriteLine(book.ToString());
-            }
-        }
-
-
-        public void SelectTitleAndAuthorsWhereAuthorsContains(string[] authors)
-        {
-            var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
-
-            var filter = Builders<BsonDocument>.Filter.All("authors", authors);
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors");
-
-            var books = collection.Find(filter).Project(projection).ToList();
-
-            foreach (var book in books)
-            {
-                Console.WriteLine(book.ToString());
-            }
-        }
 
         public void SelectTitleAuthorsFromBooksByCategoryAndAuthor(string category, string author)
         {
             var database = MongoLocalConnection.GetDatabase("ATAQUEMALMONGO");
-            var collection = database.GetCollection<BsonDocument>("BOOKS");
+            var collection = database.GetCollection<Book_>("BOOKS2");
 
-            var filter = Builders<BsonDocument>.Filter.And(
-            Builders<BsonDocument>.Filter.Eq("categories", category),
-            Builders<BsonDocument>.Filter.Ne("authors", author)
-            );
-
-            var projection = Builders<BsonDocument>.Projection.Include("title").Include("authors");
-
-            var sort = Builders<BsonDocument>.Sort.Ascending("title");
-
-            var books = collection.Find(filter).Project(projection).Sort(sort).ToList();
+            var books = from book in collection.AsQueryable<Book_>()
+                        where book.categories.Contains(category) && !book.authors.Contains(author)
+                        orderby book.title
+                        select new { book.title, book.authors };
 
             foreach (var book in books)
             {
-                Console.WriteLine(book.ToString());
+                Console.WriteLine(book.title);
+                foreach (var a in book.authors)
+                {
+                    Console.WriteLine(a);
+                }
+                Console.WriteLine();
             }
+          
         }
 
         

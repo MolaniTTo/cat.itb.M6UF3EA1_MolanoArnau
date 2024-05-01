@@ -57,6 +57,7 @@ namespace UF3_test
             Console.WriteLine("19. Delete first category of product with name = 'MakBook Air'");
             Console.WriteLine("20. Load all collections");
             Console.WriteLine("21. Drop collection");
+            Console.WriteLine();
             Console.WriteLine("         ----------EA3----------         ");
             Console.WriteLine("22. Select ISBN of all books");
             Console.WriteLine("23. Select title categories from books and orderByPageCount");
@@ -66,8 +67,16 @@ namespace UF3_test
             Console.WriteLine("27. Select books that have category Java and discard books with author Vikram Goyal");
             Console.WriteLine("28. Select name and price of the product with the lowest price.");
             Console.WriteLine("29. Sum of all stocks of the products collection");
+            Console.WriteLine();
+            Console.WriteLine("         ----------EA4----------         ");
+            Console.WriteLine("30. Mostra el número de restaurants per tipus de cuina de forma descendent");
+            Console.WriteLine("31. Mostra el número de grades per restaurant");
+            Console.WriteLine("32. Mostra la puntuació màxima per restaurant");
+            Console.WriteLine("33. Mostra els tipus de cuina per barri");
             Console.WriteLine("0. Exit");
             Console.WriteLine("Introdueix el número de l'exercici que vols executar: ");
+
+
 
             int option = Convert.ToInt32(Console.ReadLine());
 
@@ -155,7 +164,7 @@ namespace UF3_test
                     break;
                 case 26:
                     string[] authors = { "Charlie Collins", "Robi Sen" };
-                    bookCRUD.SelectTitleAndAuthorsWhereAuthorsContains(authors);
+                    bookCRUD.SelectTitleAuthorsFromBooksByAuthors(authors);
                     break;
                 case 27:
                     bookCRUD.SelectTitleAuthorsFromBooksByCategoryAndAuthor("Java", "Vikram Goyal");
@@ -166,7 +175,18 @@ namespace UF3_test
                 case 29:
                     productCRUD.SelectSumOfStocks();
                     break;
-
+                case 30:
+                    restaurantCRUD.CountRestaurantsByCuisineSortDescending();
+                    break;
+                case 31:
+                    restaurantCRUD.CountGradesByRestaurant();
+                    break;
+                case 32:
+                    restaurantCRUD.ShowMaxScoreByRestaurant();
+                    break;
+                case 33:
+                    restaurantCRUD.ShowCuisineTypesByBorough();
+                    break;
                 case 0:
                     Environment.Exit(0);
                     break;
@@ -174,8 +194,8 @@ namespace UF3_test
                     Console.WriteLine("Opció no vàlida");
                     break;
             }
-
         }
+
         private static void InsertStudents()
         {
            
@@ -293,12 +313,13 @@ namespace UF3_test
 
             peopleCRUD.LoadPeopleCollection();
             productCRUD.LoadProductsCollection();
+            productCRUD.LoadProducts2Collection();
             bookCRUD.LoadBooksCollection();
+            bookCRUD.LoadBooks2Collection();
             restaurantCRUD.LoadRestaurantsCollection();
             studentCRUD.LoadStudentsCollection();
-          
+
         }
 
-      
     }
 }
